@@ -10,18 +10,15 @@ import UIKit
 
 class WeatherTableViewController: UITableViewController {
     
-    var weatherViewModel: WeatherViewModel
+    var forecastsViewModel = ForecastsViewModel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        weatherViewModel = WeatherViewModel()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        forecastsViewModel.loadWeathers(fromCities: ["Blumenau", "Florianópolis", "São Paulo"]) { () in
+            print("Reloading data!")
+            self.tableView.reloadData()
+        }
     }
 
     // MARK: - Table view data source
@@ -31,25 +28,56 @@ class WeatherTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return weatherViewModel?.numberOfAvailableWeatherForecasts
+        print("Returned number of rows in section: \(forecastsViewModel.numberOfWeathers)")
+        return forecastsViewModel.numberOfWeathers
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "weatherCell", for: indexPath) as? WeatherTableViewCell else {
             fatalError("Unexpected cell in table!")
         }
+        
+        let index = indexPath.row
+        
+        forecastsViewModel.loadIcon(withId: index) { image in
+            cell.iconImageView.image = image
+        }
+        
+        cell.cityLabel.text = forecastsViewModel.city(withId: index)
 
-        // Configure the cell...
+        cell.descriptionLabel.text = forecastsViewModel.description(withId: index)
+        
+        cell.temperatureLabel.text = forecastsViewModel.temperature(withId: index)
 
         return cell
     }
 
     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+        super.prepare(for: segue, sender: sender)
+        
+        switch (segue.identifier ?? "") {
+        case "ShowWeatherDetails":
+            guard let viewController = segue.destination as? WeatherViewController else {
+                fatalError("Unexpected destination!")
+            }
+            
+            guard let selectedCell = sender as? WeatherTableViewCell else {
+                fatalError("Unexpected sender!")
+            }
+            
+            guard let indexPath = tableView.indexPath(for: selectedCell) else {
+                fatalError("The selected cell is not being displayed on the table!")
+            }
+            
+            let selectedWeather = forecastsViewModel.weather(withId: indexPath.row)
+            
+            viewController.weatherViewModel = WeatherViewModel(weather: selectedWeather)
+            
+        default:
+            fatalError("Unexpected segue identifier: \(segue.identifier!)")
+        }
     }
  
 

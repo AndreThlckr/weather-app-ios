@@ -9,5 +9,13 @@
 import Foundation
 
 class WeatherRepository {
+   
+    func load(city: String, completion: @escaping (Weather) -> Void){
+        ApiDataSource().fetchData(fromCity: city) {weather in
+            completion(weather)
+        }
+        
+        //TODO: load last weather from file/database
+    }
     
 }

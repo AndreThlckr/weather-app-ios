@@ -9,10 +9,52 @@
 import Foundation
 
 class WeatherViewModel {
+    var weather: Weather
     
-    var numberOfAvailableWeatherForecasts: Int {
-        return 3
+    init(weather: Weather) {
+        self.weather = weather
     }
     
+    var city: String {
+        get { return weather.city }
+    }
     
+    var minTemperature: String {
+        get {
+            let temp = weather.temperature.minTemperature
+            return "\(temp)°C"
+        }
+    }
+    
+    var maxTemperature: String {
+        get {
+            let temp = weather.temperature.maxTemperature
+            return "\(temp)°C"
+        }
+    }
+    
+    var humidity: String {
+        get {
+            return "\(weather.temperature.humidity)%"
+        }
+    }
+    
+    var windSpeed: String {
+        get {
+            return "\(weather.wind.speed) km/h"
+        }
+    }
+    
+    var windDegree: String {
+        get {
+            return "\(weather.wind.degree)°"
+        }
+    }
+    
+    var feelsLike: String {
+        get {
+            let temp = weather.temperature.feelsLike
+            return "\(temp)°C"
+        }
+    }
 }

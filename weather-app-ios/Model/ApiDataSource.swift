@@ -10,27 +10,31 @@ import Foundation
 import Alamofire
 
 class ApiDataSource {
-    let baseUrl = "api.weatherstack.com/current"
-    let apiKey = "5fff8d4066b4c10f6878841e8dab70f9"
+    
+    //MARK: Properties
+    
+    let baseUrl = "http://api.openweathermap.org/data/2.5/weather"
+    
+    private let apiKey = "1b6691af33b72ea1d9f3494cc2665fe9"
+    
     
     //MARK: API request methods
     
-    func fetchData() {
-        let encoding = Alamofire.JSONEncoding.default
-        Alamofire.request(baseUrl, parameters: ["access_key": apiKey, "query": "Blumenau"], encoding: encoding, headers: nil)
+    func fetchData(fromCity: String, completion: @escaping (Weather) -> Void) {
+         let url = "\(baseUrl)?q=\(fromCity.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)&APPID=\(apiKey)&units=metric"
+        Alamofire.request(url)
             .responseJSON { (response) in
+                print(response)
+                
                 if response.result.isSuccess {
-                    guard let result = response.result.value as? [String: Any] else {
-                        return
-                    }
-                    guard let json = result["current"] as? [String: Any] else {
-                        return }
+                    let result = response.data!
                     
-                    let data = WeatherUtils.decodeFromJson(dictionary: json)
-                    //TODO: return data
+                    let weather = try! JSONDecoder().decode(Weather.self, from: result)
+                    
+                    completion(weather)
                 }
                 else{
-                    print("There was an error")
+                    print("There was an error: \(response.error)")
                 }
         }
     }
